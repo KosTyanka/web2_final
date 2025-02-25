@@ -1,4 +1,3 @@
-```
 # Recipes App
 
 This is a full-stack Node.js application for managing recipes. Users can register, log in, view, create, update, and delete recipes. The application uses MongoDB for data storage, JWT for authentication, and Express for routing.
