@@ -154,4 +154,3 @@ Consistent error messages with status codes:
 ## License
 
 This project is licensed under the **MIT License**.
-```
