@@ -6,24 +6,45 @@
   <title>Recipes - Recipes App</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Inline basic styles for the edit form */
     .edit-form {
       background: #f9f9f9;
       padding: 10px;
       margin-top: 10px;
       border: 1px solid #ccc;
     }
+    /* Navbar styling */
+    nav {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+    }
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+    nav ul li {
+      margin-right: 15px;
+    }
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
+  <nav>
+    <ul>
+      <li><a href="recipes.html">Recipes</a></li>
+      <li><a href="profile.html">Profile</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
   <h2>Your Recipes</h2>
-  <button onclick="logout()">Logout</button>
-
   <!-- Search bar for filtering recipes -->
   <input type="text" id="searchBar" placeholder="Find a recipe by title..." />
-
   <ul id="recipeList"></ul>
-
   <h3>Add New Recipe</h3>
   <form id="recipeForm">
     <input type="text" id="title" placeholder="Title" required />
@@ -31,17 +52,12 @@
     <textarea id="instructions" placeholder="Instructions" required></textarea>
     <button type="submit">Add Recipe</button>
   </form>
-
   <script>
     const token = localStorage.getItem('token');
     if (!token) {
       window.location.href = 'index.html';
     }
-
-    // Global variable to store fetched recipes
     let allRecipes = [];
-
-    // Fetch all recipes
     async function fetchRecipes() {
       const response = await fetch('/api/recipes', {
         headers: { 'Authorization': 'Bearer ' + token }
@@ -50,8 +66,6 @@
       allRecipes = recipes;
       displayRecipes(recipes);
     }
-
-    // Display recipes on the page
     function displayRecipes(recipes) {
       const recipeList = document.getElementById('recipeList');
       recipeList.innerHTML = '';
@@ -76,25 +90,18 @@
         recipeList.appendChild(li);
       });
     }
-
-    // Open the edit form for a specific recipe
     function openEditForm(id) {
       document.getElementById('editForm-' + id).style.display = 'block';
     }
-
-    // Close the edit form
     function closeEditForm(id) {
       document.getElementById('editForm-' + id).style.display = 'none';
     }
-
-    // Submit the edit form (update recipe)
     async function submitEdit(event, id) {
       event.preventDefault();
       const form = event.target;
       const title = form.title.value;
       const ingredients = form.ingredients.value.split(',').map(item => item.trim());
       const instructions = form.instructions.value;
-
       await fetch('/api/recipes/' + id, {
         method: 'PUT',
         headers: {
@@ -103,18 +110,14 @@
         },
         body: JSON.stringify({ title, ingredients, instructions })
       });
-
       closeEditForm(id);
       fetchRecipes();
     }
-
-    // Add new recipe
     document.getElementById('recipeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('title').value;
       const ingredients = document.getElementById('ingredients').value.split(',').map(item => item.trim());
       const instructions = document.getElementById('instructions').value;
-
       await fetch('/api/recipes', {
         method: 'POST',
         headers: {
@@ -123,15 +126,11 @@
         },
         body: JSON.stringify({ title, ingredients, instructions })
       });
-
       fetchRecipes();
-      // Clear the form fields
       document.getElementById('title').value = '';
       document.getElementById('ingredients').value = '';
       document.getElementById('instructions').value = '';
     });
-
-    // Delete a recipe
     async function deleteRecipe(id) {
       await fetch(`/api/recipes/${id}`, {
         method: 'DELETE',
@@ -141,8 +140,6 @@
       });
       fetchRecipes();
     }
-
-    // Filter recipes using the search bar
     document.getElementById('searchBar').addEventListener('input', () => {
       const query = document.getElementById('searchBar').value.toLowerCase();
       const filteredRecipes = allRecipes.filter(recipe =>
@@ -150,14 +147,10 @@
       );
       displayRecipes(filteredRecipes);
     });
-
-    // Logout
     function logout() {
       localStorage.removeItem('token');
       window.location.href = 'index.html';
     }
-
-    // Initial fetch
     fetchRecipes();
   </script>
 </body>
