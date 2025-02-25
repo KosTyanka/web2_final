@@ -5,8 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile - Recipes App</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Navbar styling */
+    nav {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+    nav ul li {
+      margin-right: 15px;
+    }
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
+  <nav>
+    <ul>
+      <li><a href="recipes.html">Recipes</a></li>
+      <li><a href="profile.html">Profile</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+  
   <h2>Profile</h2>
   <div id="profileData"></div>
   
