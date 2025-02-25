@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipes - Recipes App</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Inline basic styles for the edit form */
+    .edit-form {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>Your Recipes</h2>
+  <button onclick="logout()">Logout</button>
+
+  <!-- Search bar for filtering recipes -->
+  <input type="text" id="searchBar" placeholder="Find a recipe by title..." />
+
+  <ul id="recipeList"></ul>
+
+  <h3>Add New Recipe</h3>
+  <form id="recipeForm">
+    <input type="text" id="title" placeholder="Title" required />
+    <input type="text" id="ingredients" placeholder="Ingredients (comma separated)" required />
+    <textarea id="instructions" placeholder="Instructions" required></textarea>
+    <button type="submit">Add Recipe</button>
+  </form>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'index.html';
+    }
+
+    // Global variable to store fetched recipes
+    let allRecipes = [];
+
+    // Fetch all recipes
+    async function fetchRecipes() {
+      const response = await fetch('/api/recipes', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const recipes = await response.json();
+      allRecipes = recipes;
+      displayRecipes(recipes);
+    }
+
+    // Display recipes on the page
+    function displayRecipes(recipes) {
+      const recipeList = document.getElementById('recipeList');
+      recipeList.innerHTML = '';
+      recipes.forEach(recipe => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${recipe.title}</strong>
+          <p>Ingredients: ${recipe.ingredients.join(', ')}</p>
+          <p>${recipe.instructions}</p>
+          <button onclick="deleteRecipe('${recipe._id}')">Delete</button>
+          <button onclick="openEditForm('${recipe._id}')">Edit</button>
+          <div id="editForm-${recipe._id}" class="edit-form" style="display: none;">
+            <form onsubmit="submitEdit(event, '${recipe._id}')">
+              <input type="text" name="title" value="${recipe.title}" required />
+              <input type="text" name="ingredients" value="${recipe.ingredients.join(', ')}" required />
+              <textarea name="instructions" required>${recipe.instructions}</textarea>
+              <button type="submit">Save</button>
+              <button type="button" onclick="closeEditForm('${recipe._id}')">Cancel</button>
+            </form>
+          </div>
+        `;
+        recipeList.appendChild(li);
+      });
+    }
+
+    // Open the edit form for a specific recipe
+    function openEditForm(id) {
+      document.getElementById('editForm-' + id).style.display = 'block';
+    }
+
+    // Close the edit form
+    function closeEditForm(id) {
+      document.getElementById('editForm-' + id).style.display = 'none';
+    }
+
+    // Submit the edit form (update recipe)
+    async function submitEdit(event, id) {
+      event.preventDefault();
+      const form = event.target;
+      const title = form.title.value;
+      const ingredients = form.ingredients.value.split(',').map(item => item.trim());
+      const instructions = form.instructions.value;
+
+      await fetch('/api/recipes/' + id, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ title, ingredients, instructions })
+      });
+
+      closeEditForm(id);
+      fetchRecipes();
+    }
+
+    // Add new recipe
+    document.getElementById('recipeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const ingredients = document.getElementById('ingredients').value.split(',').map(item => item.trim());
+      const instructions = document.getElementById('instructions').value;
+
+      await fetch('/api/recipes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ title, ingredients, instructions })
+      });
+
+      fetchRecipes();
+      // Clear the form fields
+      document.getElementById('title').value = '';
+      document.getElementById('ingredients').value = '';
+      document.getElementById('instructions').value = '';
+    });
+
+    // Delete a recipe
+    async function deleteRecipe(id) {
+      await fetch(`/api/recipes/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+      fetchRecipes();
+    }
+
+    // Filter recipes using the search bar
+    document.getElementById('searchBar').addEventListener('input', () => {
+      const query = document.getElementById('searchBar').value.toLowerCase();
+      const filteredRecipes = allRecipes.filter(recipe =>
+        recipe.title.toLowerCase().includes(query)
+      );
+      displayRecipes(filteredRecipes);
+    });
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'index.html';
+    }
+
+    // Initial fetch
+    fetchRecipes();
+  </script>
+</body>
+</html>
